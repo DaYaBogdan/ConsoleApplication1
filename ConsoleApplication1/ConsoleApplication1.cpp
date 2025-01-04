@@ -11,17 +11,11 @@ public:
     Matrix(int _mass) { mass = _mass, Init(); };
     ~Matrix();
 
-
-    //----Methods----//
-
+    //----IO----//
     int CreateMatrix();
     int Output();
-    int Deixtra(int* activatedVertices, int endVert, int startVert);
-    int Deixtra_(int* activatedVertices, int endVert, int startVert);
-    int BellmanFord(int* activatedVertices, int endVert, int startVert);
-    int SearchInWidth(int startVert, int endVert);
-    int SearchInHeight(int* activatedVertices, int endVert, int startVert);
 
+    //----Lab1----//
     Matrix& operator +(Matrix& obj);
     Matrix& operator *(Matrix& obj);
     Matrix& operator xor(Matrix& obj);
@@ -32,11 +26,19 @@ public:
     void vertexClosure(int vertex1, int vertex2);
     void edgeTighter(int vertex1, int vertex2);
 
+    //----Lab2----//
+    int SearchInWidth(int startVert, int endVert);
+    int SearchInHeight(int* activatedVertices, int endVert, int startVert);
 
+    //----Lab3----//
+    int Deixtra(int* activatedVertices, int endVert, int startVert);
+    int Deixtra_(int* activatedVertices, int endVert, int startVert);
+    int BellmanFord(int* activatedVertices, int endVert, int startVert);
+    
+    //----Support----//
     int* OfflineVertices(int* vertices, int* activatedVertices);
     int* ActiveVertices();
 
-    //----Friends----//
     friend int GetVertex();
 
 private:
@@ -48,6 +50,7 @@ private:
     int* Copy(int* get);
 };
 
+//----De/Constructor----//
 Matrix::Matrix()
 {
     data = NULL;
@@ -57,6 +60,27 @@ Matrix::Matrix()
 Matrix::~Matrix()
 {
     Delete();
+}
+
+//----IO----//
+int Matrix::Output()
+{
+    cout << "__|  ";
+    for (int i = 0; i < mass; i++)
+        cout << "V" << i + 1 << "  ";
+    cout << endl;
+
+
+    for (int i = 0; i < mass; i++)
+    {
+        cout << "V" << i + 1 << "|";
+        for (int j = 0; j < mass; j++)
+            cout << setw(4) << data[i][j];
+        cout << endl;
+    }
+    cout << endl;
+
+    return 0;
 }
 
 int Matrix::CreateMatrix()
@@ -84,28 +108,6 @@ int Matrix::Input()
     return 1;
 }
 
-
-
-int Matrix::Output()
-{
-    cout << "__|  ";
-    for (int i = 0; i < mass; i++)
-        cout << "V" << i + 1 << "  ";
-    cout << endl;
-
-
-    for (int i = 0; i < mass; i++)
-    {
-        cout << "V" << i + 1 << "|";
-        for (int j = 0; j < mass; j++)
-            cout << setw(4) << data[i][j];
-        cout << endl;
-    }
-    cout << endl;
-
-    return 0;
-}
-
 int Matrix::Init()
 {
     data = new int* [mass];
@@ -128,124 +130,6 @@ int Matrix::Delete()
     return 0;
 }
 
-int Matrix::Deixtra_(int* activatedVertices, int endVert, int startVert)
-{
-    int temp = 0;
-    int min = 100000000;
-
-    activatedVertices[startVert] = 1;
-
-    int* incidence = OfflineVertices(Copy(data[startVert]), activatedVertices);
-
-    if (incidence[endVert]) return incidence[endVert];
-
-    for (int i = 0; i < mass; i++)
-    {
-        if (incidence[i])
-        {
-            temp = Deixtra_(Copy(activatedVertices), endVert, i);
-            if (!min) min = temp;
-            else if (temp < min) min = incidence[i] + temp;
-        }
-    }
-
-    return min;
-}
-
-int Matrix::Deixtra(int* activatedVertices, int endVert, int startVert)
-{
-    int temp = 0;
-    int min = 100000000;
-
-    activatedVertices[startVert] = 1;
-
-    int* incidence = OfflineVertices(Copy(data[startVert]), activatedVertices);
-
-    if (incidence[endVert]) min = incidence[endVert];
-
-    for (int i = 0; i < mass; i++)
-    {
-        if (incidence[i])
-        {
-            temp = Deixtra_(Copy(activatedVertices), endVert, i);
-            if (!min) min = temp;
-            else if (temp < min) min = incidence[i] + temp;
-        }
-    }
-
-    return min;
-}
-
-int Matrix::BellmanFord(int* activatedVertices, int endVert, int startVert) // скажи нет рекурсиям (они очень сильно вредят логике программы)
-{
-    for (int i = 0; i < mass; i++)
-    {
-        if (data[startVert][i])
-        {
-            if (!activatedVertices[i] && i != startVert)
-                activatedVertices[i] = data[startVert][i];
-            else
-            {
-                if (activatedVertices[i] > data[startVert][i] + activatedVertices[startVert])
-                    activatedVertices[i] = data[startVert][i] + activatedVertices[startVert];
-            }
-        }
-    }
-    for (int k = 0; k < mass; k++)
-    {
-        for (int i = 0; i < mass; i++)
-        {
-            if (activatedVertices[i])
-            {
-                for (int j = 0; j < mass; j++)
-                {
-                    if (data[i][j])
-                    {
-                        if (!activatedVertices[j])
-                            activatedVertices[j] = data[i][j] + activatedVertices[i];
-                        else if (activatedVertices[j] > data[i][j] + activatedVertices[i])
-                            activatedVertices[j] = data[i][j] + activatedVertices[i];
-                    }
-                }
-            }
-        }
-    }
-
-    return activatedVertices[endVert];
-}
-
-int* Matrix::ActiveVertices()
-{
-    int* activatedVertices = new int[mass];
-
-    for (int i = 0; i < mass; i++)
-    {
-        activatedVertices[i] = 0;
-    }
-
-    return activatedVertices;
-}
-
-int GetVertex()
-{
-    int vertex;
-
-    cout << "Input vertex: ";
-    cin >> vertex;
-
-    vertex -= 1;
-
-    return vertex;
-}
-
-int* Matrix::OfflineVertices(int* vertices, int* activatedVertices)
-{
-    for (int i = 0; i < mass; i++)
-        if (activatedVertices[i]) vertices[i] = 0;
-
-    return vertices;
-}
-
 int* Matrix::Copy(int* get)
 {
     int* vertex = new int[mass];
@@ -256,55 +140,7 @@ int* Matrix::Copy(int* get)
     return vertex;
 }
 
-int Matrix::SearchInWidth(int startVert, int endVert)
-{
-    int counter = 1;
-    int* vertices = Copy(data[startVert]);
-
-    while (!vertices[endVert] && counter < mass + 1)
-    {
-        for (int i = 0; i < mass; i++)
-        {
-            if (vertices[i])
-            {
-                for (int j = 0; j < mass; j++)
-                {
-                    vertices[j] += data[i][j];
-                }
-            }
-        }
-        counter++;
-    }
-
-    if (counter >= mass)
-        return 0;
-
-    return counter;
-}
-
-int Matrix::SearchInHeight(int* activatedVertices, int endVert, int startVert)
-{
-    int temp = 0;
-    int min = mass;
-
-    activatedVertices[startVert] = 1;
-
-    int* incidence = OfflineVertices(Copy(data[startVert]), activatedVertices);
-
-    for (int i = 0; i < mass; i++)
-    {
-        if (incidence[endVert]) return 1;
-
-        if (incidence[i])
-        {
-            temp = SearchInHeight(Copy(activatedVertices), endVert, i);
-            if (temp < min) min = temp;
-        }
-    }
-
-    return min + 1;
-}
-
+//----Lab1----//
 Matrix& Matrix::operator + (Matrix& obj)
 {
     for (int i = 0; i < mass; i++)
@@ -437,7 +273,177 @@ void Matrix::edgeTighter(int vertex1, int vertex2)
     vertexClosure(vertex1, vertex2);
 }
 
+//----Lab2----//
+int Matrix::SearchInWidth(int startVert, int endVert)
+{
+    int counter = 1;
+    int* vertices = Copy(data[startVert]);
 
+    while (!vertices[endVert] && counter < mass + 1)
+    {
+        for (int i = 0; i < mass; i++)
+        {
+            if (vertices[i])
+            {
+                for (int j = 0; j < mass; j++)
+                {
+                    vertices[j] += data[i][j];
+                }
+            }
+        }
+        counter++;
+    }
+
+    if (counter >= mass)
+        return 0;
+
+    return counter;
+}
+
+int Matrix::SearchInHeight(int* activatedVertices, int endVert, int startVert)
+{
+    int temp = 0;
+    int min = mass;
+
+    activatedVertices[startVert] = 1;
+
+    int* incidence = OfflineVertices(Copy(data[startVert]), activatedVertices);
+
+    for (int i = 0; i < mass; i++)
+    {
+        if (incidence[endVert]) return 1;
+
+        if (incidence[i])
+        {
+            temp = SearchInHeight(Copy(activatedVertices), endVert, i);
+            if (temp < min) min = temp;
+        }
+    }
+
+    return min + 1;
+}
+
+//----Lab3----//
+int Matrix::Deixtra_(int* activatedVertices, int endVert, int startVert)
+{
+    int temp = 0;
+    int min = 100000000;
+
+    activatedVertices[startVert] = 1;
+
+    int* incidence = OfflineVertices(Copy(data[startVert]), activatedVertices);
+
+    if (incidence[endVert]) return incidence[endVert];
+
+    for (int i = 0; i < mass; i++)
+    {
+        if (incidence[i])
+        {
+            temp = Deixtra_(Copy(activatedVertices), endVert, i);
+            if (!min) min = temp;
+            else if (temp < min) min = incidence[i] + temp;
+        }
+    }
+
+    return min;
+}
+
+int Matrix::Deixtra(int* activatedVertices, int endVert, int startVert)
+{
+    int temp = 0;
+    int min = 100000000;
+
+    activatedVertices[startVert] = 1;
+
+    int* incidence = OfflineVertices(Copy(data[startVert]), activatedVertices);
+
+    if (incidence[endVert]) min = incidence[endVert];
+
+    for (int i = 0; i < mass; i++)
+    {
+        if (incidence[i])
+        {
+            temp = Deixtra_(Copy(activatedVertices), endVert, i);
+            if (!min) min = temp;
+            else if (temp < min) min = incidence[i] + temp;
+        }
+    }
+
+    return min;
+}
+
+int Matrix::BellmanFord(int* activatedVertices, int endVert, int startVert) // скажи нет рекурсиям (они очень сильно вредят логике программы)
+{
+    for (int i = 0; i < mass; i++)
+    {
+        if (data[startVert][i])
+        {
+            if (!activatedVertices[i] && i != startVert)
+                activatedVertices[i] = data[startVert][i];
+            else
+            {
+                if (activatedVertices[i] > data[startVert][i] + activatedVertices[startVert])
+                    activatedVertices[i] = data[startVert][i] + activatedVertices[startVert];
+            }
+        }
+    }
+    for (int k = 0; k < mass; k++)
+    {
+        for (int i = 0; i < mass; i++)
+        {
+            if (activatedVertices[i])
+            {
+                for (int j = 0; j < mass; j++)
+                {
+                    if (data[i][j])
+                    {
+                        if (!activatedVertices[j])
+                            activatedVertices[j] = data[i][j] + activatedVertices[i];
+                        else if (activatedVertices[j] > data[i][j] + activatedVertices[i])
+                            activatedVertices[j] = data[i][j] + activatedVertices[i];
+                    }
+                }
+            }
+        }
+    }
+
+    return activatedVertices[endVert];
+}
+
+//----Support----//
+int* Matrix::OfflineVertices(int* vertices, int* activatedVertices)
+{
+    for (int i = 0; i < mass; i++)
+        if (activatedVertices[i]) vertices[i] = 0;
+
+    return vertices;
+}
+
+int* Matrix::ActiveVertices()
+{
+    int* activatedVertices = new int[mass];
+
+    for (int i = 0; i < mass; i++)
+    {
+        activatedVertices[i] = 0;
+    }
+
+    return activatedVertices;
+}
+
+int GetVertex()
+{
+    int vertex;
+
+    cout << "Input vertex: ";
+    cin >> vertex;
+
+    vertex -= 1;
+
+    return vertex;
+}
+
+//----Main----//
 int main()
 {
     Matrix matrix;
